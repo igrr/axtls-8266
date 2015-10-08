@@ -29,13 +29,14 @@ OBJ_FILES := \
 	ssl/tls1_svr.o \
 	ssl/x509.o \
 	crypto/crypto_misc.o \
-
+	util/time.o \
 
 CPPFLAGS += -I$(XTENSA_LIBS)/include \
 		-Icrypto \
 		-Issl \
+		-Iutil \
+		-I$(SDK_BASE)/include \
 		-I.
-
 LDFLAGS  += 	-L$(XTENSA_LIBS)/lib \
 		-L$(XTENSA_LIBS)/arch/lib \
 
