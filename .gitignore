@@ -1,5 +1,8 @@
 *.o
 bin/
 Makefile.local
+make.sh
+meins/
+.gitignore
 .DS_Store
 

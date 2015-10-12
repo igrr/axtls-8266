@@ -1,5 +1,5 @@
 /*
- * time.c - ESP8266-specific header for SNTP
+ * time.c - ESP8266-specific functions for SNTP
  * Copyright (c) 2015 Peter Dobler. All rights reserved.
  * This file is part of the esp8266 core for Arduino environment.
  * This library is free software; you can redistribute it and/or
@@ -49,16 +49,16 @@ void configTime(unsigned long timezone, int daylight)
 }
 
 // seconds since 1970
-time_t mktime(struct tm_t *tm) {
+time_t mktime(struct tm *t) {
   // system_mktime expects month in range 1..12
   #define START_MONTH 1
-  return DIFF1900TO1970 + system_mktime(tm->tm_year, tm->tm_mon + START_MONTH, tm->tm_mday, tm->tm_hour, tm->tm_min, tm->tm_sec);
+  return DIFF1900TO1970 + system_mktime(t->tm_year, t->tm_mon + START_MONTH, t->tm_mday, t->tm_hour, t->tm_min, t->tm_sec);
 }
 
 time_t time(time_t * t)
 {
   time_t seconds = sntp_get_current_timestamp();
-  if (seconds)
+  if (t)
     *t = seconds;
   return seconds ;
 }
@@ -91,10 +91,10 @@ char * ctime(const time_t *clock)
   return sntp_get_real_time(*clock);
 }
 
-int compareTime(struct tm_t *tm1, struct tm_t *tm2)
+int compareTime(struct tm *t1, struct tm *t2)
 {
-  unsigned long sec1 = mktime(tm1);
-  unsigned long sec2 = mktime(tm2);
+  unsigned long sec1 = mktime(t1);
+  unsigned long sec2 = mktime(t2);
   return (sec1 - sec2);
 }
 
