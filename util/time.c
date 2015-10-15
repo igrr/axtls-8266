@@ -69,8 +69,8 @@ time_t time(time_t * t)
 int gettimeofday(void *tp, void *tzp)
 {
   struct timeval tv;
-  tv.tv_sec  = millis() / 1000;
-  tv.tv_usec = micros();
+  tv.tv_sec  = system_get_time() / 1000000;
+  tv.tv_usec = system_get_time() % 1000000;
   ((struct timeval*)tp)->tv_sec  = tv.tv_sec;
   ((struct timeval*)tp)->tv_usec = tv.tv_usec;
   return 0;
@@ -80,7 +80,7 @@ int clock_gettime(clockid_t clock_id, struct timespec *tp)
 {
   struct timespec tv;
   tv.tv_sec  = millis() / 1000;
-  tv.tv_nsec = micros() * 1000L;
+  tv.tv_nsec = micros() * 1000;
   ((struct timespec*)tp)->tv_sec  = tv.tv_sec;
   ((struct timespec*)tp)->tv_nsec = tv.tv_nsec;
   return 0;

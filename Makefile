@@ -6,7 +6,6 @@ AR := $(TOOLCHAIN_PREFIX)ar
 LD := $(TOOLCHAIN_PREFIX)gcc
 OBJCOPY := $(TOOLCHAIN_PREFIX)objcopy
 
-
 XTENSA_LIBS ?= $(shell $(CC) -print-sysroot)
 
 
@@ -38,7 +37,7 @@ CPPFLAGS += -I$(XTENSA_LIBS)/include \
 		-I$(SDK_BASE)/include \
 		-I.
 
-		LDFLAGS  += 	-L$(XTENSA_LIBS)/lib \
+LDFLAGS  += -L$(XTENSA_LIBS)/lib \
 		-L$(XTENSA_LIBS)/arch/lib \
 
 
