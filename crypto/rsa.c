@@ -150,8 +150,12 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
     uint8_t *block = (uint8_t *)malloc(byte_size);
     int pad_count = 0;
 
-    if (out_len < byte_size)        /* check output has enough size */
-        return -1;
+    //if(!block) return -1;
+
+    if (out_len < byte_size)        /* check output has enough size */ {
+      //free(block);
+      return -1;
+    }
 
     memset(out_data, 0, out_len);   /* initialise */
 
@@ -167,14 +171,18 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
     /* convert to a normal block */
     bi_export(ctx->bi_ctx, decrypted_bi, block, byte_size);
 
-    if (block[i++] != 0)             /* leading 0? */
-        return -1;
+    if (block[i++] != 0)             /* leading 0? */ {
+      free(block);
+      return -1;
+    }
 
 #ifdef CONFIG_SSL_CERT_VERIFICATION
     if (is_decryption == 0) /* PKCS1.5 signing pads with "0xff"s */
     {
-        if (block[i++] != 0x01)     /* BT correct? */
-            return -1;
+        if (block[i++] != 0x01)     /* BT correct? */{
+          free(block);
+          return -1;
+        }
 
         while (block[i++] == 0xff && i < byte_size)
             pad_count++;
@@ -182,16 +190,20 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
     else                    /* PKCS1.5 encryption padding is random */
 #endif
     {
-        if (block[i++] != 0x02)     /* BT correct? */
-            return -1;
+        if (block[i++] != 0x02){ /* BT correct? */
+          free(block);
+          return -1;
+        }
 
         while (block[i++] && i < byte_size)
             pad_count++;
     }
 
     /* check separator byte 0x00 - and padding must be 8 or more bytes */
-    if (i == byte_size || pad_count < 8) 
-        return -1;
+    if (i == byte_size || pad_count < 8) {
+      free(block);
+      return -1;
+    }
 
     size = byte_size - i;
 

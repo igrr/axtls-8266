@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, Cameron Rich
+ * Copyright (c) 2012-2016, Cameron Rich
  * 
  * All rights reserved.
  * 
@@ -54,9 +54,9 @@ typedef INT64 int64_t;
 
 #ifdef CONFIG_PLATFORM_SOLARIS
 #include <inttypes.h>
+#include <endian.h>
 #else
 #include <stdint.h>
-#include <endian.h>
 #endif /* Not Solaris */
 
 #endif /* Not Win32 */
