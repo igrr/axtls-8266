@@ -220,7 +220,7 @@ static void gen_utc_time(uint8_t *buf, int *offset)
 
 static void gen_pub_key2(const RSA_CTX *rsa_ctx, uint8_t *buf, int *offset)
 {
-    static const uint8_t pub_key_seq[] =
+    static const uint8_t pub_key_seq[] = 
     {
         ASN1_INTEGER, 0x03, 0x01, 0x00, 0x01 /* INTEGER 65537 */
     };
