@@ -313,6 +313,35 @@ EXP_FUNC int STDCALL ssl_write(SSL *ssl, const uint8_t *out_data, int out_len)
     return out_len;
 }
 
+EXP_FUNC int STDCALL ssl_calculate_write_length(SSL *ssl, int length)
+{
+    int msg_length = 0;
+    if (ssl->hs_status == SSL_ERROR_DEAD)
+        return SSL_ERROR_CONN_LOST;
+
+    if (ssl->flag & SSL_SENT_CLOSE_NOTIFY)
+        return SSL_CLOSE_NOTIFY;
+
+    msg_length += length;
+
+    if (ssl->flag & SSL_TX_ENCRYPTED)
+    {
+        msg_length += ssl->cipher_info->digest_size;
+        {
+            int last_blk_size = msg_length%ssl->cipher_info->padding_size;
+            int pad_bytes = ssl->cipher_info->padding_size - last_blk_size;
+            if (pad_bytes == 0)
+                pad_bytes += ssl->cipher_info->padding_size;
+            msg_length += pad_bytes;
+        }
+        if (ssl->version >= SSL_PROTOCOL_VERSION_TLS1_1)
+        {
+            msg_length += ssl->cipher_info->iv_size;
+        }
+    }
+    return SSL_RECORD_SIZE+msg_length;
+}
+
 /**
  * Add a certificate to the certificate chain.
  */
@@ -668,6 +697,7 @@ static void add_hmac_digest(SSL *ssl, int mode, uint8_t *hmac_header,
         memcpy(tmp, t_buf, prefix_size);
     } else {
         t_buf = (uint8_t *)malloc(hmac_len+10);
+        if(t_buf == NULL) return;
     }
 
     memcpy(t_buf, (mode == SSL_SERVER_WRITE || mode == SSL_CLIENT_WRITE) ? 
@@ -1164,6 +1194,7 @@ int send_packet(SSL *ssl, uint8_t protocol, const uint8_t *in, int length)
         {
             uint8_t iv_size = ssl->cipher_info->iv_size;
             uint8_t *t_buf = malloc(msg_length + iv_size);
+            if(t_buf == NULL) return -1;
             memcpy(t_buf + iv_size, ssl->bm_data, msg_length);
             if (get_random(iv_size, t_buf) < 0)
                 return SSL_NOT_OK;

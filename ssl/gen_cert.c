@@ -228,6 +228,7 @@ static void gen_pub_key2(const RSA_CTX *rsa_ctx, uint8_t *buf, int *offset)
     int seq_offset;
     int pub_key_size = rsa_ctx->num_octets;
     uint8_t *block = (uint8_t *)malloc(pub_key_size);
+    if(block == NULL) return;
     int seq_size = pre_adjust_with_size(
                             ASN1_SEQUENCE, &seq_offset, buf, offset);
     buf[(*offset)++] = ASN1_INTEGER;
@@ -290,7 +291,12 @@ static void gen_signature(const RSA_CTX *rsa_ctx, const uint8_t *sha_dgst,
     };
 
     uint8_t *enc_block = (uint8_t *)malloc(rsa_ctx->num_octets);
+    if(enc_block == NULL) return;
     uint8_t *block = (uint8_t *)malloc(sizeof(asn1_sig) + SHA1_SIZE);
+    if(block == NULL){
+        free(enc_block);
+        return;
+    }
     int sig_size;
 
     /* add the digest as an embedded asn.1 sequence */
@@ -352,6 +358,7 @@ EXP_FUNC int STDCALL ssl_x509_create(SSL_CTX *ssl_ctx, uint32_t options, const c
     int ret = X509_OK, offset = 0, seq_offset;
     /* allocate enough space to load a new certificate */
     uint8_t *buf = (uint8_t *)malloc(ssl_ctx->rsa_ctx->num_octets*2 + 512);
+    if(buf == NULL) return -1;
     uint8_t sha_dgst[SHA1_SIZE];
     int seq_size = pre_adjust_with_size(ASN1_SEQUENCE, 
                                     &seq_offset, buf, &offset);
@@ -363,6 +370,7 @@ EXP_FUNC int STDCALL ssl_x509_create(SSL_CTX *ssl_ctx, uint32_t options, const c
     gen_signature(ssl_ctx->rsa_ctx, sha_dgst, buf, &offset);
     adjust_with_size(seq_size, seq_offset, buf, &offset);
     *cert_data = (uint8_t *)malloc(offset); /* create the exact memory for it */
+    if(cert_data == NULL) goto error;
     memcpy(*cert_data, buf, offset);
 
 error:

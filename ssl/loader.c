@@ -112,7 +112,13 @@ EXP_FUNC int STDCALL ssl_obj_memory_load(SSL_CTX *ssl_ctx, int mem_type,
     SSLObjLoader *ssl_obj;
 
     ssl_obj = (SSLObjLoader *)calloc(1, sizeof(SSLObjLoader));
+    if(ssl_obj == NULL)
+        return -1;
     ssl_obj->buf = (uint8_t *)malloc(len);
+    if(ssl_obj->buf == NULL){
+        free(ssl_obj);
+        return -1;
+    }
     memcpy(ssl_obj->buf, data, len);
     ssl_obj->len = len;
     ret = do_obj(ssl_ctx, mem_type, ssl_obj, password);

@@ -150,7 +150,7 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
     uint8_t *block = (uint8_t *)malloc(byte_size);
     int pad_count = 0;
 
-    //if(!block) return -1;
+    if(!block) return -1;
 
     if (out_len < byte_size)        /* check output has enough size */ {
       //free(block);
