@@ -79,6 +79,9 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
 #endif
 
     *ctx = (X509_CTX *)calloc(1, sizeof(X509_CTX));
+    if(ctx == NULL)
+        return -1;
+
     x509_ctx = *ctx;
 
     /* get the certificate size */
@@ -119,8 +122,10 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
         goto end_cert;
     }
 
-
     x509_ctx->fingerprint = malloc(SHA1_SIZE);
+    if(x509_ctx->fingerprint == NULL){
+        return ret;
+    }
     SHA1_CTX sha_fp_ctx;
     SHA1_Init(&sha_fp_ctx);
     SHA1_Update(&sha_fp_ctx, &cert[0], cert_size);
@@ -214,11 +219,12 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
 
                         if (type == ASN1_CONTEXT_DNSNAME)
                         {
-                            x509_ctx->subject_alt_dnsnames = (char**)
-                                    realloc(x509_ctx->subject_alt_dnsnames, 
-                                       (totalnames + 2) * sizeof(char*));
-                            x509_ctx->subject_alt_dnsnames[totalnames] = 
-                                    (char*)malloc(dnslen + 1);
+                            x509_ctx->subject_alt_dnsnames = (char**) realloc(x509_ctx->subject_alt_dnsnames, (totalnames + 2) * sizeof(char*));
+                            if(x509_ctx->subject_alt_dnsnames == NULL)
+                                return ret;
+                            x509_ctx->subject_alt_dnsnames[totalnames] =  (char*)malloc(dnslen + 1);
+                            if(x509_ctx->subject_alt_dnsnames[totalnames] == NULL)
+                                return ret;
                             x509_ctx->subject_alt_dnsnames[totalnames+1] = NULL;
                             memcpy(x509_ctx->subject_alt_dnsnames[totalnames], 
                                     cert + suboffset, dnslen);
@@ -315,6 +321,8 @@ static bigint *sig_verify(BI_CTX *ctx, const uint8_t *sig, int sig_len,
     bigint *decrypted_bi, *dat_bi;
     bigint *bir = NULL;
     uint8_t *block = (uint8_t *)malloc(sig_len);
+    
+    if(block == NULL) return bir;
 
     /* decrypt */
     dat_bi = bi_import(ctx, sig, sig_len);

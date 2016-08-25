@@ -166,6 +166,7 @@ static char *make_uni_pass(const char *password, int *uni_pass_len)
     }
 
     uni_pass = (char *)malloc((strlen(password)+1)*2);
+    if(uni_pass == NULL) return NULL;
 
     /* modify the password into a unicode version */
     for (i = 0; i < (int)strlen(password); i++)
@@ -284,6 +285,8 @@ int pkcs12_decode(SSL_CTX *ssl_ctx, SSLObjLoader *ssl_obj, const char *password)
 
     auth_safes_len = auth_safes_end - auth_safes_start;
     auth_safes = malloc(auth_safes_len);
+    if(auth_safes == NULL)
+        goto error;
 
     memcpy(auth_safes, &buf[auth_safes_start], auth_safes_len);
 

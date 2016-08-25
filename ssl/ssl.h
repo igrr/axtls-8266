@@ -251,7 +251,6 @@ EXP_FUNC SSL * STDCALL ssl_server_new(SSL_CTX *ssl_ctx, int client_fd);
  * can be null if no session resumption is being used or required. This option
  * is not used in skeleton mode.
  * @param sess_id_size The size of the session id (max 32)
- * @param host_name If non-zero, host name to be sent to server for SNI support
  * @return An SSL object reference. Use ssl_handshake_status() to check 
  * if a handshake succeeded.
  */
@@ -295,6 +294,15 @@ EXP_FUNC int STDCALL ssl_read(SSL *ssl, uint8_t **in_data);
  * @see ssl.h for the error code list.
  */
 EXP_FUNC int STDCALL ssl_write(SSL *ssl, const uint8_t *out_data, int out_len);
+
+/**
+ * @brief Calculate the size of the encrypted data from what you are about to send 
+ * @param ssl [in] An SSL obect reference.
+ * @param out_len [in] The number of bytes to be written.
+ * @return The number of bytes that will be sent, or if < 0 if an error.
+ * @see ssl.h for the error code list.
+ */
+EXP_FUNC int STDCALL ssl_calculate_write_length(SSL *ssl, int out_len);
 
 /**
  * @brief Find an ssl object based on a file descriptor.
