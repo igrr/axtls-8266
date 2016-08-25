@@ -195,6 +195,8 @@ int do_client_connect(SSL *ssl)
 static int send_client_hello(SSL *ssl)
 {
     uint8_t *buf = ssl->bm_data;
+    if(buf == NULL)
+        return SSL_NOT_OK;
     time_t tm = time(NULL);
     uint8_t *tm_ptr = &buf[6]; /* time will go here */
     int i, offset;
@@ -214,10 +216,14 @@ static int send_client_hello(SSL *ssl)
     if (get_random(SSL_RANDOM_SIZE-4, &buf[10]) < 0)
         return SSL_NOT_OK;
 
+    if(ssl->dc->client_random == NULL)
+        return SSL_NOT_OK;
     memcpy(ssl->dc->client_random, &buf[6], SSL_RANDOM_SIZE);
     offset = 6 + SSL_RANDOM_SIZE;
 
     /* give session resumption a go */
+    if(ssl->session_id == NULL)
+        return SSL_NOT_OK;
     if (IS_SET_SSL_FLAG(SSL_SESSION_RESUME))    /* set initially by user */
     {
         buf[offset++] = ssl->sess_id_size;
@@ -261,6 +267,8 @@ static int send_client_hello(SSL *ssl)
 static int process_server_hello(SSL *ssl)
 {
     uint8_t *buf = ssl->bm_data;
+    if(buf == NULL)
+        return SSL_NOT_OK;
     int pkt_size = ssl->bm_index;
     int num_sessions = ssl->ssl_ctx->num_sessions;
     uint8_t sess_id_size;
@@ -341,6 +349,8 @@ static int process_server_hello_done(SSL *ssl)
 static int send_client_key_xchg(SSL *ssl)
 {
     uint8_t *buf = ssl->bm_data;
+    if(buf == NULL)
+        return SSL_NOT_OK;
     uint8_t premaster_secret[SSL_SECRET_SIZE];
     int enc_secret_size = -1;
 
@@ -429,6 +439,8 @@ error:
 static int send_cert_verify(SSL *ssl)
 {
     uint8_t *buf = ssl->bm_data;
+    if(buf == NULL)
+        return SSL_NOT_OK;
     uint8_t dgst[SHA1_SIZE+MD5_SIZE+15];
     RSA_CTX *rsa_ctx = ssl->ssl_ctx->rsa_ctx;
     int n = 0, ret;

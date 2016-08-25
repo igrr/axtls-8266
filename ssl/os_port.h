@@ -2,17 +2,17 @@
  * Copyright (c) 2007-2016, Cameron Rich
  * 
  * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
+ * 
+ * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice,
+ * * Redistributions of source code must retain the above copyright notice, 
  *   this list of conditions and the following disclaimer.
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
+ * * Redistributions in binary form must reproduce the above copyright notice, 
+ *   this list of conditions and the following disclaimer in the documentation 
  *   and/or other materials provided with the distribution.
- * * Neither the name of the axTLS project nor the names of its contributors
- *   may be used to endorse or promote products derived from this software
+ * * Neither the name of the axTLS project nor the names of its contributors 
+ *   may be used to endorse or promote products derived from this software 
  *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
@@ -45,7 +45,7 @@ extern "C" {
 #include "config.h"
 #include <stdio.h>
 
-#ifdef WIN32
+#if defined(WIN32)
 #define STDCALL                 __stdcall
 #define EXP_FUNC                __declspec(dllexport)
 #else
@@ -146,7 +146,7 @@ void ax_wdt_feed();
 
 /* This fix gets around a problem where a win32 application on a cygwin xterm
    doesn't display regular output (until a certain buffer limit) - but it works
-   fine under a normal DOS window. This is a hack to get around the issue -
+   fine under a normal DOS window. This is a hack to get around the issue - 
    see http://www.khngai.com/emacs/tty.php  */
 #define TTY_FLUSH()             if (!_isatty(_fileno(stdout))) fflush(stdout);
 
@@ -215,7 +215,7 @@ void exit_now(const char *format, ...);
 #define SSL_CTX_MUTEX_DESTROY(A)    CloseHandle(A)
 #define SSL_CTX_LOCK(A)             WaitForSingleObject(A, INFINITE)
 #define SSL_CTX_UNLOCK(A)           ReleaseMutex(A)
-#else
+#else 
 #include <pthread.h>
 #define SSL_CTX_MUTEX_TYPE          pthread_mutex_t
 #define SSL_CTX_MUTEX_INIT(A)       pthread_mutex_init(&A, NULL)
@@ -234,4 +234,4 @@ void exit_now(const char *format, ...);
 }
 #endif
 
-#endif
+#endif 

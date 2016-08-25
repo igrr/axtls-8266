@@ -199,8 +199,9 @@ struct _SSL
 #endif
 #ifdef CONFIG_SSL_CERT_VERIFICATION
     X509_CTX *x509_ctx;
-    bool can_free_certificates;
+    uint8_t can_free_certificates;
 #endif
+
     uint8_t session_id[SSL_SESSION_ID_SIZE]; 
     uint8_t client_mac[SHA256_SIZE];    /* for HMAC verification */
     uint8_t server_mac[SHA256_SIZE];    /* for HMAC verification */

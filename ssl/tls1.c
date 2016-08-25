@@ -292,8 +292,8 @@ EXP_FUNC int STDCALL ssl_read(SSL *ssl, uint8_t **in_data)
 EXP_FUNC int STDCALL ssl_write(SSL *ssl, const uint8_t *out_data, int out_len)
 {
     int n = out_len, nw, i, tot = 0;
-    /* maximum size of a TLS packet is around 16kB, so fragment */
 
+    /* maximum size of a TLS packet is around 16kB, so fragment */
     do 
     {
         nw = n;
@@ -313,6 +313,35 @@ EXP_FUNC int STDCALL ssl_write(SSL *ssl, const uint8_t *out_data, int out_len)
     } while (n > 0);
 
     return out_len;
+}
+
+EXP_FUNC int STDCALL ssl_calculate_write_length(SSL *ssl, int length)
+{
+    int msg_length = 0;
+    if (ssl->hs_status == SSL_ERROR_DEAD)
+        return SSL_ERROR_CONN_LOST;
+
+    if (ssl->flag & SSL_SENT_CLOSE_NOTIFY)
+        return SSL_CLOSE_NOTIFY;
+
+    msg_length += length;
+
+    if (ssl->flag & SSL_TX_ENCRYPTED)
+    {
+        msg_length += ssl->cipher_info->digest_size;
+        {
+            int last_blk_size = msg_length%ssl->cipher_info->padding_size;
+            int pad_bytes = ssl->cipher_info->padding_size - last_blk_size;
+            if (pad_bytes == 0)
+                pad_bytes += ssl->cipher_info->padding_size;
+            msg_length += pad_bytes;
+        }
+        if (ssl->version >= SSL_PROTOCOL_VERSION_TLS1_1)
+        {
+            msg_length += ssl->cipher_info->iv_size;
+        }
+    }
+    return SSL_RECORD_SIZE+msg_length;
 }
 
 /**
@@ -572,7 +601,7 @@ SSL *ssl_new(SSL_CTX *ssl_ctx, int client_fd)
     ssl->need_bytes = SSL_RECORD_SIZE;      /* need a record */
     ssl->client_fd = client_fd;
     ssl->flag = SSL_NEED_RECORD;
-    ssl->bm_data = ssl->bm_all_data + BM_RECORD_OFFSET; /* space at the start */
+    ssl->bm_data = ssl->bm_all_data+BM_RECORD_OFFSET; /* space at the start */
     ssl->hs_status = SSL_NOT_OK;            /* not connected */
 #ifdef CONFIG_ENABLE_VERIFICATION
     ssl->ca_cert_ctx = ssl_ctx->ca_cert_ctx;
@@ -662,6 +691,7 @@ static void add_hmac_digest(SSL *ssl, int mode, uint8_t *hmac_header,
 {
     int hmac_len = buf_len + 8 + SSL_RECORD_SIZE;
     uint8_t *t_buf = (uint8_t *)malloc(buf_len+100);
+    if(t_buf == NULL) return;
 
     memcpy(t_buf, (mode == SSL_SERVER_WRITE || mode == SSL_CLIENT_WRITE) ? 
                     ssl->write_sequence : ssl->read_sequence, 8);
@@ -1151,6 +1181,7 @@ int send_packet(SSL *ssl, uint8_t protocol, const uint8_t *in, int length)
         {
             uint8_t iv_size = ssl->cipher_info->iv_size;
             uint8_t *t_buf = malloc(msg_length + iv_size);
+            if(t_buf == NULL) return -1;
             memcpy(t_buf + iv_size, ssl->bm_data, msg_length);
             if (get_random(iv_size, t_buf) < 0)
                 return SSL_NOT_OK;
@@ -1242,7 +1273,15 @@ static int set_key_block(SSL *ssl, int is_write)
         print_blob("server iv", server_iv, ciph_info->iv_size);
 #endif
 
-    // free(is_write ? ssl->encrypt_ctx : ssl->decrypt_ctx);
+#if 1 // do not cache
+    if(is_write){
+        free(ssl->encrypt_ctx);
+        ssl->encrypt_ctx = NULL;
+    } else {
+        free(ssl->decrypt_ctx);
+        ssl->decrypt_ctx = NULL;
+    }
+#endif
 
     /* now initialise the ciphers */
     if (is_client)
@@ -1770,7 +1809,7 @@ void disposable_free(SSL *ssl)
         free(ssl->dc);
         ssl->dc = NULL;
     }
-    ssl->can_free_certificates = true;
+    ssl->can_free_certificates = 1;
 }
 
 static void certificate_free(SSL* ssl)
@@ -1780,7 +1819,7 @@ static void certificate_free(SSL* ssl)
         x509_free(ssl->x509_ctx);
         ssl->x509_ctx = 0;
     }
-    ssl->can_free_certificates = false;
+    ssl->can_free_certificates = 0;
 #endif
 }
 

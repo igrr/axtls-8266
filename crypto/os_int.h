@@ -54,6 +54,7 @@ typedef INT64 int64_t;
 
 #ifdef CONFIG_PLATFORM_SOLARIS
 #include <inttypes.h>
+#include <endian.h>
 #else
 #include <stdint.h>
 #endif /* Not Solaris */
