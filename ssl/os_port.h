@@ -65,6 +65,16 @@ extern "C" {
 			strncpy_P((dest), (sz), (src)); \
 		})
 
+#ifndef pgm_read_byte
+#define pgm_read_byte(addr) \
+({ \
+	const char *__addr = (const char *)(addr); \
+	const char __addrOffset = ((unsigned long)__addr & 3); \
+	const unsigned long *__addrAligned = (const unsigned long *)(__addr - __addrOffset); \
+	(unsigned char)((*__addrAligned) >> (__addrOffset << 3)); \
+})
+#endif
+
 #include "util/time.h"
 #include <errno.h>
 #define alloca(size) __builtin_alloca(size)
