@@ -98,6 +98,10 @@ extern "C" {
 
 void ax_wdt_feed();
 
+#ifndef IRAM_ATTR
+#define IRAM_ATTR __attribute__((section(".iram.text")))
+#endif
+
 #elif defined(WIN32)
 
 /* Windows CE stuff */
