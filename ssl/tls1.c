@@ -2429,10 +2429,6 @@ EXP_FUNC void STDCALL ssl_display_error(int error_code)
 /**
  * Debugging routine to display alerts.
  */
-
-/**
- * Debugging routine to display alerts.
- */
 void DISPLAY_ALERT(SSL *ssl, int alert)
 {
     if (!IS_SET_SSL_FLAG(SSL_DISPLAY_STATES))

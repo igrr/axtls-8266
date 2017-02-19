@@ -60,6 +60,11 @@ extern "C" {
 
 #if defined(ESP8266)
 
+#define system_get_string_from_flash(src, dest, sz) \
+		({ \
+			strncpy_P((dest), (sz), (src)); \
+		})
+
 #include "util/time.h"
 #include <errno.h>
 #define alloca(size) __builtin_alloca(size)
@@ -97,6 +102,17 @@ extern "C" {
 #endif
 
 void ax_wdt_feed();
+
+#ifndef PROGMEM
+#define PROGMEM __attribute__((aligned(4))) __attribute__((section(".irom.text")))
+#endif
+
+
+#ifndef FORCEL32_NOT_SUPPORTED
+#define flashArrayRead(x,y) x[y]
+#else
+#define flashArrayRead(x,y) pgm_read_byte((x)+(y))
+#endif
 
 #elif defined(WIN32)
 
@@ -228,10 +244,6 @@ void exit_now(const char *format, ...);
 #define SSL_CTX_MUTEX_DESTROY(A)
 #define SSL_CTX_LOCK(A)
 #define SSL_CTX_UNLOCK(A)
-#endif
-
-#ifndef PROGMEM
-#define PROGMEM
 #endif
 
 #ifdef __cplusplus

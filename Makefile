@@ -49,7 +49,9 @@ ifneq ($(MFORCE32),)
     # Your compiler supports the -mforce-l32 flag which means that 
     # constants can be stored in flash (program) memory instead of SRAM.
     # See: https://www.arduino.cc/en/Reference/PROGMEM
-    CFLAGS += -DPROGMEM="__attribute__((aligned(4))) __attribute__((section(\".irom.text\")))" -mforce-l32
+    CFLAGS +=  -mforce-l32
+else
+    CFLAGS += -DFORCEL32_NOT_SUPPORTED
 endif
 
 BIN_DIR := bin

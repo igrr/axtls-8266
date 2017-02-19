@@ -188,7 +188,7 @@ void ssl_obj_free(SSLObjLoader *ssl_obj)
 #define IS_PRIVATE_KEY              2
 #define IS_CERTIFICATE              3
 
-static const char * const begins[NUM_PEM_TYPES] =
+static const char begins[NUM_PEM_TYPES][40] PROGMEM =
 {
     "-----BEGIN RSA PRIVATE KEY-----",
     "-----BEGIN ENCRYPTED PRIVATE KEY-----",
@@ -196,7 +196,7 @@ static const char * const begins[NUM_PEM_TYPES] =
     "-----BEGIN CERTIFICATE-----",
 };
 
-static const char * const ends[NUM_PEM_TYPES] =
+static const char ends[NUM_PEM_TYPES][40] PROGMEM =
 {
     "-----END RSA PRIVATE KEY-----",
     "-----END ENCRYPTED PRIVATE KEY-----",
@@ -204,7 +204,7 @@ static const char * const ends[NUM_PEM_TYPES] =
     "-----END CERTIFICATE-----",
 };
 
-static const char * const aes_str[2] =
+static const char aes_str[2][24] PROGMEM =
 {
     "DEK-Info: AES-128-CBC,",
     "DEK-Info: AES-256-CBC," 
@@ -234,14 +234,20 @@ static int pem_decrypt(const char *where, const char *end,
         goto error;
     }
 
-    if ((start = strstr((const char *)where, aes_str[0])))         /* AES128? */
+    char aes_str_0_ram[24];
+    char aes_str_1_ram[24];
+
+    system_get_string_from_flash(aes_str[0], aes_str_0_ram, 24);
+    system_get_string_from_flash(aes_str[1], aes_str_1_ram, 24);
+
+    if ((start = (char *)strstr((const char *)where, aes_str_0_ram)))         /* AES128? */
     {
-        start += strlen(aes_str[0]);
+        start += strlen(aes_str_0_ram);
     }
-    else if ((start = strstr((const char *)where, aes_str[1])))    /* AES256? */
+    else if ((start = (char *)strstr((const char *)where, aes_str_1_ram)))    /* AES256? */
     {
         is_aes_256 = 1;
-        start += strlen(aes_str[1]);
+        start += strlen(aes_str_1_ram);
     }
     else 
     {
@@ -301,6 +307,8 @@ static int new_pem_obj(SSL_CTX *ssl_ctx, int is_cacert, char *where,
 {
     int ret = SSL_ERROR_BAD_CERTIFICATE;
     SSLObjLoader *ssl_obj = NULL;
+    char begins_ram [40];
+    char ends_ram [40];
 
     while (remain > 0)
     {
@@ -309,11 +317,13 @@ static int new_pem_obj(SSL_CTX *ssl_ctx, int is_cacert, char *where,
 
         for (i = 0; i < NUM_PEM_TYPES; i++)
         {
-            if ((start = strstr(where, begins[i])) &&
-                    (end = strstr(where, ends[i])))
+            system_get_string_from_flash(begins[i], begins_ram, 40);
+            system_get_string_from_flash(ends[i], ends_ram, 40);
+            if ((start = (char *)strstr(where, begins_ram)) &&
+                    (end = (char *)strstr(where, ends_ram)))
             {
                 remain -= (int)(end-where);
-                start += strlen(begins[i]);
+                start += strlen(begins_ram);
                 pem_size = (int)(end-start);
 
                 ssl_obj = (SSLObjLoader *)calloc(1, sizeof(SSLObjLoader));
@@ -369,8 +379,8 @@ static int new_pem_obj(SSL_CTX *ssl_ctx, int is_cacert, char *where,
                 if ((ret = do_obj(ssl_ctx, obj_type, ssl_obj, password)))
                     goto error;
 
-                end += strlen(ends[i]);
-                remain -= strlen(ends[i]);
+                end += strlen(ends_ram);
+                remain -= strlen(ends_ram);
                 while (remain > 0 && (*end == '\r' || *end == '\n'))
                 {
                     end++;
