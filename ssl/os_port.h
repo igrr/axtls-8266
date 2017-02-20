@@ -96,7 +96,8 @@ extern "C" {
 #define be64toh(x) __bswap_constant_64(x)
 #endif
 
-void ax_wdt_feed();
+extern void system_soft_wdt_feed(void);
+#define ax_wdt_feed system_soft_wdt_feed
 
 #elif defined(WIN32)
 
