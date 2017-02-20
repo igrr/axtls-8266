@@ -150,14 +150,14 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
     uint8_t *block = NULL;
     int pad_count = 0;
 
-	do
-	{
+    do
+    {
     if (out_len < byte_size)        /* check output has enough size */
        break;
 
     block = (uint8_t *)malloc(byte_size);
-	if (!block)
-	   break;
+    if (!block)
+       break;
 
     memset(out_data, 0, out_len);   /* initialise */
 
@@ -203,12 +203,12 @@ int RSA_decrypt(const RSA_CTX *ctx, const uint8_t *in_data,
 
     /* get only the bit we want */
     memcpy(out_data, &block[i], size);
-	} while(false);
+    } while(false);
 
     if(block)
-	   free(block);
+       free(block);
 
-	return size;
+    return size;
 }
 
 /**
