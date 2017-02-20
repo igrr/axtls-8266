@@ -60,11 +60,6 @@ extern "C" {
 
 #if defined(ESP8266)
 
-#define system_get_string_from_flash(src, dest, sz) \
-		({ \
-			strncpy_P((dest), (sz), (src)); \
-		})
-
 #ifndef pgm_read_byte
 #define pgm_read_byte(addr) \
 ({ \
@@ -254,6 +249,10 @@ void exit_now(const char *format, ...);
 #define SSL_CTX_MUTEX_DESTROY(A)
 #define SSL_CTX_LOCK(A)
 #define SSL_CTX_UNLOCK(A)
+#endif
+
+#ifndef PROGMEM
+#define PROGMEM
 #endif
 
 #ifdef __cplusplus
