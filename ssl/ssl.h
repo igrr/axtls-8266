@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2007-2016, Cameron Rich
+ * Copyright (c) 2017, Diego Guerrero (ssl_want_write)
  * 
  * All rights reserved.
  * 
@@ -281,6 +282,19 @@ EXP_FUNC SSL * STDCALL ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const uin
  * @param ssl [in] The ssl object reference.
  */
 EXP_FUNC void STDCALL ssl_free(SSL *ssl);
+
+/**
+ * @brief Check the rx buffer for new information.
+ * If the socket has new information to be read, 1 will be returned.
+ * Cheap alternative to check availability without actually decrypting.
+ * @param ssl [in] An SSL object reference.
+ * @return Read status:
+ * - if == 1, then there are bytes to be read,
+ * - if == 0, then there are not,
+ * - if < 0,  there was an error.
+ * @see ssl.h for the error code list.
+ */
+EXP_FUNC int STDCALL ssl_want_read(SSL *ssl);
 
 /**
  * @brief Read the SSL data stream.

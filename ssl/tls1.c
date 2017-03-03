@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2007-2016, Cameron Rich
+ * Copyright (c) 2017, Diego Guerrero (ssl_want_write)
  * 
  * All rights reserved.
  * 
@@ -290,6 +291,20 @@ EXP_FUNC void STDCALL ssl_free(SSL *ssl)
     ssl->extensions = NULL;
     free(ssl);
 }
+
+/*
+ * Check the rx buffer for new information.
+ */
+ EXP_FUNC int STDCALL ssl_want_read(SSL *ssl)
+ {
+     int ret = SOCKET_PENDING(ssl->client_fd);
+     
+     if (ret < 0) {
+         return ret;
+     }
+     
+     return ret > 0;
+ }
 
 /*
  * Read the SSL connection and send any alerts for various errors.
