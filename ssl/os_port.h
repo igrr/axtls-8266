@@ -98,6 +98,10 @@ extern "C" {
 
 void ax_wdt_feed();
 
+#ifndef IRAM_ATTR
+#define IRAM_ATTR __attribute__((section(".iram.text")))
+#endif
+
 #elif defined(WIN32)
 
 /* Windows CE stuff */
@@ -228,6 +232,10 @@ void exit_now(const char *format, ...);
 #define SSL_CTX_MUTEX_DESTROY(A)
 #define SSL_CTX_LOCK(A)
 #define SSL_CTX_UNLOCK(A)
+#endif
+
+#ifndef IRAM_ATTR 
+#define IRAM_ATTR
 #endif
 
 #ifndef PROGMEM
