@@ -60,6 +60,16 @@ extern "C" {
 
 #if defined(ESP8266)
 
+#ifndef pgm_read_byte
+#define pgm_read_byte(addr) \
+({ \
+	const char *__addr = (const char *)(addr); \
+	const char __addrOffset = ((unsigned long)__addr & 3); \
+	const unsigned long *__addrAligned = (const unsigned long *)(__addr - __addrOffset); \
+	(unsigned char)((*__addrAligned) >> (__addrOffset << 3)); \
+})
+#endif
+
 #include "util/time.h"
 #include <errno.h>
 #define alloca(size) __builtin_alloca(size)
@@ -97,6 +107,17 @@ extern "C" {
 #endif
 
 void ax_wdt_feed();
+
+#ifndef PROGMEM
+#define PROGMEM __attribute__((aligned(4))) __attribute__((section(".irom.text")))
+#endif
+
+
+#ifndef FORCEL32_NOT_SUPPORTED
+#define flashArrayRead(x,y) x[y]
+#else
+#define flashArrayRead(x,y) pgm_read_byte((x)+(y))
+#endif
 
 #elif defined(WIN32)
 
