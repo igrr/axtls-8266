@@ -9,6 +9,7 @@ ax_port_malloc
 ax_port_calloc
 ax_port_realloc
 ax_port_free
+ax_port_pending
 ax_port_read
 ax_port_write
 ax_port_open

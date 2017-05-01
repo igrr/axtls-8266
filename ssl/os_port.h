@@ -76,6 +76,7 @@ extern "C" {
 #define SOCKET_READ(A,B,C)      ax_port_read(A,B,C)
 #define SOCKET_WRITE(A,B,C)     ax_port_write(A,B,C)
 #define SOCKET_CLOSE(A)         ax_port_close(A)
+#define SOCKET_PENDING(A)       ax_port_pending(A)
 #define get_file                ax_get_file
 #define EWOULDBLOCK EAGAIN
 
