@@ -290,7 +290,7 @@ EXP_FUNC void STDCALL print_blob(const char *format,
     va_list(ap);
 
     va_start(ap, size);
-    sprintf(tmp, "%s\n", format);
+    snprintf(tmp, sizeof(tmp), "SSL: %s\n", format);
     vprintf(tmp, ap);
     print_hex_init(size);
     for (i = 0; i < size; i++)
@@ -309,7 +309,7 @@ EXP_FUNC void STDCALL print_blob(const char *format, const unsigned char *data,
 
 #if defined(CONFIG_SSL_HAS_PEM) || defined(CONFIG_HTTP_HAS_AUTHORIZATION)
 /* base64 to binary lookup table */
-static const uint8_t map[128] =
+static const uint8_t map[128] PROGMEM =
 {
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
     255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255, 255,
@@ -334,7 +334,7 @@ EXP_FUNC int STDCALL base64_decode(const char *in, int len,
     g = 3;
     for (x = y = z = t = 0; x < len; x++)
     {
-        if ((c = map[in[x]&0x7F]) == 0xff)
+        if ((c = ax_array_read_u8(map, in[x]&0x7F)) == 0xff)
             continue;
 
         if (c == 254)   /* this is the end... */

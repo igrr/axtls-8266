@@ -159,9 +159,15 @@ extern "C" {
 #define SSL_X509_CERT_COMMON_NAME               0
 #define SSL_X509_CERT_ORGANIZATION              1
 #define SSL_X509_CERT_ORGANIZATIONAL_NAME       2
-#define SSL_X509_CA_CERT_COMMON_NAME            3
-#define SSL_X509_CA_CERT_ORGANIZATION           4
-#define SSL_X509_CA_CERT_ORGANIZATIONAL_NAME    5
+#define SSL_X509_CERT_LOCATION                  3
+#define SSL_X509_CERT_COUNTRY                   4
+#define SSL_X509_CERT_STATE                     5
+#define SSL_X509_CA_CERT_COMMON_NAME            6
+#define SSL_X509_CA_CERT_ORGANIZATION           7
+#define SSL_X509_CA_CERT_ORGANIZATIONAL_NAME    8
+#define SSL_X509_CA_CERT_LOCATION               9
+#define SSL_X509_CA_CERT_COUNTRY                10
+#define SSL_X509_CA_CERT_STATE                  11
 
 /* SSL object loader types */
 #define SSL_OBJ_X509_CERT                       1
@@ -226,6 +232,36 @@ EXP_FUNC SSL_CTX * STDCALL ssl_ctx_new(uint32_t options, int num_sessions);
 EXP_FUNC void STDCALL ssl_ctx_free(SSL_CTX *ssl_ctx);
 
 /**
+ * @brief Allocates new SSL extensions structure and returns pointer to it
+ *
+ * @return ssl_ext Pointer to SSL_EXTENSIONS structure
+ *
+ */
+EXP_FUNC SSL_EXTENSIONS * STDCALL ssl_ext_new(void);
+
+/**
+ * @brief Set the host name for SNI extension
+ * @param ssl_ext pointer returned by ssl_ext_new
+ * @param host_name pointer to a zero-terminated string containing host name
+ */
+EXP_FUNC void STDCALL ssl_ext_set_host_name(SSL_EXTENSIONS * ext, const char* host_name);
+
+/**
+ * @brief Set the maximum fragment size for the fragment size negotiation extension
+ * @param ssl_ext pointer returned by ssl_ext_new
+ * @param fragment_size fragment size, allowed values: 2^9, 2^10 ... 2^14
+ */
+EXP_FUNC void STDCALL ssl_ext_set_max_fragment_size(SSL_EXTENSIONS * ext, unsigned fragment_size);
+
+/**
+ * @brief Frees SSL extensions structure
+ *
+ * @param ssl_ext [in] Pointer to SSL_EXTENSION structure
+ *
+ */
+EXP_FUNC void STDCALL ssl_ext_free(SSL_EXTENSIONS *ssl_ext);
+
+/**
  * @brief (server only) Establish a new SSL connection to an SSL client.
  *
  * It is up to the application to establish the logical connection (whether it
@@ -251,11 +287,12 @@ EXP_FUNC SSL * STDCALL ssl_server_new(SSL_CTX *ssl_ctx, int client_fd);
  * can be null if no session resumption is being used or required. This option
  * is not used in skeleton mode.
  * @param sess_id_size The size of the session id (max 32)
- * @param host_name If non-zero, host name to be sent to server for SNI support
+ * @param ssl_ext pointer to a structure with the activated SSL extensions 
+ * and their values
  * @return An SSL object reference. Use ssl_handshake_status() to check 
  * if a handshake succeeded.
  */
-EXP_FUNC SSL * STDCALL ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const uint8_t *session_id, uint8_t sess_id_size, const char* host_name);
+EXP_FUNC SSL * STDCALL ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const uint8_t *session_id, uint8_t sess_id_size, SSL_EXTENSIONS* ssl_ext);
 
 /**
  * @brief Free any used resources on this connection. 
@@ -343,8 +380,8 @@ EXP_FUNC uint8_t STDCALL ssl_get_session_id_size(const SSL *ssl);
  * @return The cipher id. This will be one of the following:
  * - SSL_AES128_SHA (0x2f)
  * - SSL_AES256_SHA (0x35)
- * - SSL_RC4_128_SHA (0x05)
- * - SSL_RC4_128_MD5 (0x04)
+ * - SSL_AES128_SHA256 (0x3c)
+ * - SSL_AES256_SHA256 (0x3d)
  */
 EXP_FUNC uint8_t STDCALL ssl_get_cipher_id(const SSL *ssl);
 
@@ -401,6 +438,15 @@ EXP_FUNC int STDCALL ssl_verify_cert(const SSL *ssl);
 EXP_FUNC int STDCALL ssl_match_fingerprint(const SSL *ssl, const uint8_t* fp);
 
 /**
+ * @brief Check if SHA256 hash of Subject Public Key Info matches the one given.
+ *
+ * @param ssl [in] An SSL object reference.
+ * @param fp [in] SHA256 hash to match against
+ * @return SSL_OK if the certificate is verified.
+ */
+EXP_FUNC int STDCALL ssl_match_spki_sha256(const SSL *ssl, const uint8_t* hash);
+
+/**
  * @brief Retrieve an X.509 distinguished name component.
  * 
  * When a handshake is complete and a certificate has been exchanged, then the
@@ -414,9 +460,15 @@ EXP_FUNC int STDCALL ssl_match_fingerprint(const SSL *ssl, const uint8_t* fp);
  * - SSL_X509_CERT_COMMON_NAME
  * - SSL_X509_CERT_ORGANIZATION
  * - SSL_X509_CERT_ORGANIZATIONAL_NAME
+ * - SSL_X509_CERT_LOCATION
+ * - SSL_X509_CERT_COUNTRY
+ * - SSL_X509_CERT_STATE
  * - SSL_X509_CA_CERT_COMMON_NAME
  * - SSL_X509_CA_CERT_ORGANIZATION
  * - SSL_X509_CA_CERT_ORGANIZATIONAL_NAME
+ * - SSL_X509_CA_CERT_LOCATION
+ * - SSL_X509_CA_CERT_COUNTRY
+ * - SSL_X509_CA_CERT_STATE
  * @return The appropriate string (or null if not defined)
  * @note Verification build mode must be enabled.
  */
