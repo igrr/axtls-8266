@@ -447,6 +447,15 @@ EXP_FUNC int STDCALL ssl_match_fingerprint(const SSL *ssl, const uint8_t* fp);
 EXP_FUNC int STDCALL ssl_match_spki_sha256(const SSL *ssl, const uint8_t* hash);
 
 /**
+ * @brief Check if SHA1 hash of CA public key matches the one given.
+ *
+ * @param ssl [in] An SSL object reference.
+ * @param fp [in] SHA1 hash to match against
+ * @return SSL_OK if the certificate is verified.
+ */
+EXP_FUNC int STDCALL ssl_match_auth_key_sha1(const SSL *ssl, const uint8_t* hash);
+
+/**
  * @brief Retrieve an X.509 distinguished name component.
  * 
  * When a handshake is complete and a certificate has been exchanged, then the

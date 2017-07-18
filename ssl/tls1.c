@@ -2271,6 +2271,25 @@ EXP_FUNC int STDCALL ssl_match_spki_sha256(const SSL *ssl, const uint8_t* hash)
     return res;
 }
 
+EXP_FUNC int STDCALL ssl_match_auth_key_sha1(const SSL *ssl, const uint8_t* fp)
+{
+    if (ssl->x509_ctx == NULL || ssl->x509_ctx->auth_key_sha1 == NULL)
+        return 1;
+    int res = memcmp(ssl->x509_ctx->auth_key_sha1, fp, SHA1_SIZE);
+    if (res != 0) {
+        printf("cert FP: ");
+        for (int i = 0; i < SHA1_SIZE; ++i) {
+            printf("%02X ", ssl->x509_ctx->auth_key_sha1[i]);
+        }
+        printf("\r\ntest FP: ");
+        for (int i = 0; i < SHA1_SIZE; ++i) {
+            printf("%02X ", fp[i]);
+        }
+        printf("\r\n");
+    }
+    return res;
+}
+
 #endif /* CONFIG_SSL_CERT_VERIFICATION */
 
 /**
