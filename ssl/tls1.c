@@ -159,6 +159,8 @@ EXP_FUNC void STDCALL ssl_ext_free(SSL_EXTENSIONS *ssl_ext)
         return;
     }
 
+    free(ssl_ext->host_name); // strdup()'d in ssl_ext_set_host_name()
+
     free(ssl_ext);
 }
 
