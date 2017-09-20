@@ -199,9 +199,16 @@ void SHA512_Final(uint8_t *digest, SHA512_CTX *ctx)
     // Pad the message so that its length is congruent to 112 modulo 128
     paddingSize = (ctx->size < 112) ? (112 - ctx->size) : 
                                         (128 + 112 - ctx->size);
+
+#ifdef WITH_PGM_READ_HELPER
+    uint8_t padding_ram[paddingSize];
+    memcpy(padding_ram, padding, (paddingSize + 3) & (~3));
+    SHA512_Update(ctx, padding_ram, paddingSize);
+#else
     // Append padding
     SHA512_Update(ctx, padding, paddingSize);
- 
+#endif // WITH_PGM_READ_HELPER
+
     // Append the length of the original message
     ctx->w_buf.w[14] = 0;
     ctx->w_buf.w[15] = be64toh(totalSize);
@@ -216,5 +223,7 @@ void SHA512_Final(uint8_t *digest, SHA512_CTX *ctx)
     // Copy the resulting digest
     if (digest != NULL)
        memcpy(digest, ctx->h_dig.digest, SHA512_SIZE);
- }
+}
+
+
  
