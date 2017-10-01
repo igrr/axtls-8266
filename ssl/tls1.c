@@ -2105,6 +2105,12 @@ EXP_FUNC int STDCALL ssl_verify_cert(const SSL *ssl)
     if (ret)        /* modify into an SSL error type */
     {
         ret = SSL_X509_ERROR(ret);
+
+#if defined (CONFIG_SSL_FULL_MODE)
+        if (ssl->ssl_ctx->options & SSL_DISPLAY_CERTS) {
+            x509_print(ssl->x509_ctx, ssl->ssl_ctx->ca_cert_ctx);
+        }
+#endif
     }
 
     return ret;
