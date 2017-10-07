@@ -1,4 +1,4 @@
-This is an ESP8266 port of [axTLS](http://axtls.sourceforge.net/) library, currently based on axTLS 2.1.2 (SVN version 274). 
+This is an ESP8266 port of [axTLS](http://axtls.sourceforge.net/) library, currently based on axTLS 2.1.4 (SVN version 277). 
 
 This library supports TLS 1.2, and the following cipher suites:
 
