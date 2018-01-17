@@ -137,8 +137,24 @@ static inline void* memcpy_P(void* dest, PGM_VOID_P src, size_t count) {
 
     return dest;
 }
+static inline int strlen_P(const char *str) {
+    int cnt = 0;
+    while (pgm_read_byte(str++)) cnt++;
+    return cnt;
+}
 #define printf(fmt, ...) do { static const char fstr[] PROGMEM = fmt; char rstr[sizeof(fmt)]; memcpy_P(rstr, fstr, sizeof(rstr)); ets_printf(rstr, ##__VA_ARGS__); } while (0)
 #define strcpy_P(dst, src) do { static const char fstr[] PROGMEM = src; memcpy_P(dst, fstr, sizeof(src)); } while (0)
+
+// Copied from ets_sys.h to avoid compile warnings
+extern int ets_printf(const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
+extern int ets_putc(int);
+
+// The network interface in WiFiClientSecure
+extern int ax_port_read(int fd, uint8_t* buffer, size_t count);
+extern int ax_port_write(int fd, uint8_t* buffer, size_t count);
+
+// TODO: Why is this not being imported from <string.h>?
+extern char *strdup(const char *orig);
 
 #elif defined(WIN32)
 

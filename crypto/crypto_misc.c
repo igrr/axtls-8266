@@ -61,8 +61,6 @@ static HCRYPTPROV gCryptProv;
 static uint8_t entropy_pool[ENTROPY_POOL_SIZE];
 #endif
 
-const char * const unsupported_str = "Error: Feature not supported\n";
-
 #ifndef CONFIG_SSL_SKELETON_MODE
 /**
  * Retrieve a file and put it into memory
