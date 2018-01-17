@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <sys/time.h>
 #include "os_port.h"
 #include "crypto_misc.h"
 
@@ -636,11 +637,15 @@ end_verify:
 /**
  * Used for diagnostics.
  */
-static const char *not_part_of_cert = "<Not Part Of Certificate>";
 void x509_print(const X509_CTX *cert, CA_CERT_CTX *ca_cert_ctx) 
 {
     if (cert == NULL)
         return;
+
+    char not_part_of_cert[30];
+    strcpy_P(not_part_of_cert, "<Not Part Of Certificate>");
+    char critical[16];
+    strcpy_P(critical, "critical, ");
 
     printf("=== CERTIFICATE ISSUED TO ===\n");
     printf("Common Name (CN):\t\t");
@@ -679,7 +684,7 @@ void x509_print(const X509_CTX *cert, CA_CERT_CTX *ca_cert_ctx)
     {
         printf("Basic Constraints:\t\t%sCA:%s, pathlen:%d\n",
                 cert->basic_constraint_is_critical ? 
-                    "critical, " : "",
+                    critical : "",
                 cert->basic_constraint_cA? "TRUE" : "FALSE",
                 cert->basic_constraint_pathLenConstraint);
     }
@@ -687,7 +692,7 @@ void x509_print(const X509_CTX *cert, CA_CERT_CTX *ca_cert_ctx)
     if (cert->key_usage_present)
     {
         printf("Key Usage:\t\t\t%s", cert->key_usage_is_critical ? 
-                    "critical, " : "");
+                    critical : "");
         bool has_started = false;
 
         if (IS_SET_KEY_USAGE_FLAG(cert, KEY_USAGE_DIGITAL_SIGNATURE))
@@ -774,7 +779,7 @@ void x509_print(const X509_CTX *cert, CA_CERT_CTX *ca_cert_ctx)
     if (cert->subject_alt_name_present)
     {
         printf("Subject Alt Name:\t\t%s", cert->subject_alt_name_is_critical 
-                ?  "critical, " : "");
+                ?  critical : "");
         if (cert->subject_alt_dnsnames)
         {
             int i = 0;

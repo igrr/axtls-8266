@@ -978,7 +978,7 @@ void generate_master_secret(SSL *ssl, const uint8_t *premaster_secret)
 {
     uint8_t buf[77]; 
 //print_blob("premaster secret", premaster_secret, 48);
-    strcpy((char *)buf, "master secret");
+    strcpy_P((char*)buf, "master secret");
     memcpy(&buf[13], ssl->dc->client_random, SSL_RANDOM_SIZE);
     memcpy(&buf[45], ssl->dc->server_random, SSL_RANDOM_SIZE);
     prf(ssl, premaster_secret, SSL_SECRET_SIZE, buf, 77, ssl->dc->master_secret,
@@ -998,7 +998,7 @@ static void generate_key_block(SSL *ssl,
         uint8_t *master_secret, uint8_t *key_block, int key_block_size)
 {
     uint8_t buf[77];
-    strcpy((char *)buf, "key expansion");
+    strcpy_P((char *)buf, "key expansion");
     memcpy(&buf[13], server_random, SSL_RANDOM_SIZE);
     memcpy(&buf[45], client_random, SSL_RANDOM_SIZE);
     prf(ssl, master_secret, SSL_SECRET_SIZE, buf, 77, 
@@ -1125,7 +1125,7 @@ static int send_raw_packet(SSL *ssl, uint8_t protocol)
     rec_buf[3] = ssl->bm_index >> 8;
     rec_buf[4] = ssl->bm_index & 0xff;
 
-    DISPLAY_BYTES(ssl, "sending %d bytes", ssl->bm_all_data, 
+    DISPLAY_BYTES(ssl, PSTR("sending %d bytes"), ssl->bm_all_data, 
                              pkt_size, pkt_size);
 
     while (sent < pkt_size)
@@ -1234,7 +1234,7 @@ int send_packet(SSL *ssl, uint8_t protocol, const uint8_t *in, int length)
             msg_length += pad_bytes;
         }
 
-        DISPLAY_BYTES(ssl, "unencrypted write", ssl->bm_data, msg_length);
+        DISPLAY_BYTES(ssl, PSTR("unencrypted write"), ssl->bm_data, msg_length);
         increment_write_sequence(ssl);
 
         /* add the explicit IV for TLS1.1 */
@@ -1392,7 +1392,7 @@ int basic_read(SSL *ssl, uint8_t **in_data)
         goto error;
     }
 
-    DISPLAY_BYTES(ssl, "received %d bytes", 
+    DISPLAY_BYTES(ssl, PSTR("received %d bytes"), 
             &ssl->bm_data[ssl->bm_read_index], read_len, read_len);
 
     ssl->got_bytes += read_len;
@@ -1469,7 +1469,7 @@ int basic_read(SSL *ssl, uint8_t **in_data)
             goto error;
         }
 
-        DISPLAY_BYTES(ssl, "decrypted", buf, read_len);
+        DISPLAY_BYTES(ssl, PSTR("decrypted"), buf, read_len);
         increment_read_sequence(ssl);
     }
 
@@ -2290,8 +2290,6 @@ EXP_FUNC int STDCALL ssl_match_spki_sha256(const SSL *ssl, const uint8_t* hash)
  */
 void DISPLAY_STATE(SSL *ssl, int is_send, uint8_t state, int not_ok)
 {
-    const char *str;
-
     if (!IS_SET_SSL_FLAG(SSL_DISPLAY_STATES))
         return;
 
@@ -2372,7 +2370,12 @@ void DISPLAY_BYTES(SSL *ssl, const char *format,
         return;
 
     va_start(ap, size);
-    print_blob(format, data, size, va_arg(ap, char *));
+    char fmt_ram[64];
+    int len = strlen_P(format) + 1;
+    if (len > sizeof(fmt_ram)) len = sizeof(fmt_ram);
+    memcpy_P(fmt_ram, format, len);
+    fmt_ram[sizeof(fmt_ram)-1] = 0;
+    print_blob(fmt_ram, data, size, va_arg(ap, char *));
     va_end(ap);
     TTY_FLUSH();
 }
@@ -2580,7 +2583,7 @@ EXP_FUNC void STDCALL ssl_display_error(int error_code) {}
 EXP_FUNC SSL * STDCALL ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const
         uint8_t *session_id, uint8_t sess_id_size)
 {
-    printf("%s", unsupported_str);
+    printf(unsupported_str);
     return NULL;
 }
 #endif
@@ -2588,20 +2591,20 @@ EXP_FUNC SSL * STDCALL ssl_client_new(SSL_CTX *ssl_ctx, int client_fd, const
 #if !defined(CONFIG_SSL_CERT_VERIFICATION)
 EXP_FUNC int STDCALL ssl_verify_cert(const SSL *ssl)
 {
-    printf("%s", unsupported_str);
+    printf(unsupported_str);
     return -1;
 }
 
 
 EXP_FUNC const char * STDCALL ssl_get_cert_dn(const SSL *ssl, int component)
 {
-    printf("%s", unsupported_str);
+    printf(unsupported_str);
     return NULL;
 }
 
 EXP_FUNC const char * STDCALL ssl_get_cert_subject_alt_dnsname(const SSL *ssl, int index)
 {
-    printf("%s", unsupported_str);
+    printf(unsupported_str);
     return NULL;
 }
 

@@ -175,7 +175,7 @@ typedef struct
 
 typedef struct 
 {
-    const char *host_name; /* Needed for the SNI support */
+    char *host_name; /* Needed for the SNI support */
     /* Needed for the Max Fragment Size Extension. 
        Allowed values: 2^9, 2^10 .. 2^14 */
     uint16_t max_fragment_size; 
