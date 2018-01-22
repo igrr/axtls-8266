@@ -309,7 +309,8 @@ static int process_server_hello(SSL *ssl)
     int pkt_size = ssl->bm_index;
     int num_sessions = ssl->ssl_ctx->num_sessions;
     uint8_t sess_id_size;
-    int offset, ret = SSL_OK;
+    int offset, ext_offset, ret = SSL_OK;
+    uint16_t total_ext_len, ext_type, ext_len;
 
     /* check that we are talking to a TLSv1 server */
     uint8_t version = (buf[4] << 4) + buf[5];
@@ -363,10 +364,35 @@ static int process_server_hello(SSL *ssl)
     offset += 2; // ignore compression
     PARANOIA_CHECK(pkt_size, offset);
 
+    // process extensions
+    ext_offset = offset;
+    total_ext_len = buf[offset] << 8;
+    total_ext_len += buf[++offset];
+    if(total_ext_len) {
+    	// process extension TLVs
+    	while(offset < ext_offset + total_ext_len) {
+            ext_type = buf[++offset] << 8;
+            ext_type += buf[++offset];
+            ext_len = buf[++offset] << 8;
+            ext_len += buf[++offset];
+
+            if(ext_type == SSL_EXT_MAX_FRAGMENT_SIZE && ssl->extensions->max_fragment_size != 0) {
+                int ext_val = buf[offset + 1];
+                if(ssl->extensions->max_fragment_size != ext_val) {
+                    ret = SSL_ALERT_ILLEGAL_PARAMETER;
+                    goto error;
+                }
+
+                ssl->max_plain_length = 512 << (ext_val - 1);
+            }
+
+            offset += ext_len;
+    	}
+    }
+
     ssl->dc->bm_proc_index = offset;
     PARANOIA_CHECK(pkt_size, offset);
 
-    // no extensions
 error:
     return ret;
 }
