@@ -282,13 +282,10 @@ static int send_client_hello(SSL *ssl)
             buf[offset++] = SSL_EXT_MAX_FRAGMENT_SIZE;
 
             buf[offset++] = 0; // size of data
-            buf[offset++] = 2;
+            buf[offset++] = 1;
 
-            buf[offset++] = (uint8_t)
-                ((ssl->extensions->max_fragment_size >> 8) & 0xff);
-            buf[offset++] = (uint8_t)
-                (ssl->extensions->max_fragment_size & 0xff);
-            ext_len += 6;
+            buf[offset++] = ssl->extensions->max_fragment_size;
+            ext_len += 5;
         }
     }
 

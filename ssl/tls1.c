@@ -176,7 +176,7 @@ EXP_FUNC void STDCALL ssl_ext_set_host_name(SSL_EXTENSIONS * ext, const char* ho
 /**
  * Set the maximum fragment size for the fragment size negotiation extension
  */
-EXP_FUNC void STDCALL ssl_ext_set_max_fragment_size(SSL_EXTENSIONS * ext, unsigned fragment_size)
+EXP_FUNC void STDCALL ssl_ext_set_max_fragment_size(SSL_EXTENSIONS * ext, uint8_t fragment_size)
 {
     ext->max_fragment_size = fragment_size;
 }
