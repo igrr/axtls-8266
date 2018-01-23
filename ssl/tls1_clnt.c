@@ -365,29 +365,31 @@ static int process_server_hello(SSL *ssl)
     PARANOIA_CHECK(pkt_size, offset);
 
     // process extensions
-    ext_offset = offset;
-    total_ext_len = buf[offset] << 8;
-    total_ext_len += buf[++offset];
-    if(total_ext_len) {
-    	// process extension TLVs
-    	while(offset < ext_offset + total_ext_len) {
-            ext_type = buf[++offset] << 8;
-            ext_type += buf[++offset];
-            ext_len = buf[++offset] << 8;
-            ext_len += buf[++offset];
+    if (offset < pkt_size) {
+        ext_offset = offset;
+        total_ext_len = buf[offset] << 8;
+        total_ext_len += buf[++offset];
+        if (total_ext_len) {
+            // process extension TLVs
+            while (offset < ext_offset + total_ext_len) {
+                ext_type = buf[++offset] << 8;
+                ext_type += buf[++offset];
+                ext_len = buf[++offset] << 8;
+                ext_len += buf[++offset];
 
-            if(ext_type == SSL_EXT_MAX_FRAGMENT_SIZE && ssl->extensions->max_fragment_size != 0) {
-                int ext_val = buf[offset + 1];
-                if(ssl->extensions->max_fragment_size != ext_val) {
-                    ret = SSL_ALERT_ILLEGAL_PARAMETER;
-                    goto error;
+                if (ext_type == SSL_EXT_MAX_FRAGMENT_SIZE && ssl->extensions->max_fragment_size != 0) {
+                    int ext_val = buf[offset + 1];
+                    if (ssl->extensions->max_fragment_size != ext_val) {
+                        ret = SSL_ALERT_ILLEGAL_PARAMETER;
+                        goto error;
+                    }
+
+                    ssl->max_plain_length = 1 << (8 + ext_val); // 2 ^ (8 + ext_val)
                 }
 
-                ssl->max_plain_length = 1 << (8 + ext_val); // 2 ^ (8 + ext_val)
+                offset += ext_len;
             }
-
-            offset += ext_len;
-    	}
+        }
     }
 
     ssl->dc->bm_proc_index = offset;
