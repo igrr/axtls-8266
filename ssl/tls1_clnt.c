@@ -383,7 +383,7 @@ static int process_server_hello(SSL *ssl)
                     goto error;
                 }
 
-                ssl->max_plain_length = 512 << (ext_val - 1);
+                ssl->max_plain_length = 1 << (8 + ext_val); // 2 ^ (8 + ext_val)
             }
 
             offset += ext_len;

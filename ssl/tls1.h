@@ -177,7 +177,7 @@ typedef struct
 {
     const char *host_name; /* Needed for the SNI support */
     /* Needed for the Max Fragment Size Extension. 
-       Allowed values: 0/1/2/3/4 corresponding to off/512/1024/2048/4096 bytes
+       Allowed values: 0,1,2,3..6 corresponding to off,512,1024,2048..16384 bytes
     */
     uint8_t max_fragment_size;
 } SSL_EXTENSIONS;
