@@ -228,7 +228,9 @@ end_bool:
 int asn1_get_bit_string_as_int(const uint8_t *buf, int *offset, uint32_t *val)
 {
     int res = X509_OK;
-    int len, i;
+    int len, i, bits;
+    uint8_t padding;
+    uint64_t v;
 
     if ((len = asn1_next_obj(buf, offset, ASN1_BIT_STRING)) < 0 || len > 5)
     {
@@ -236,18 +238,49 @@ int asn1_get_bit_string_as_int(const uint8_t *buf, int *offset, uint32_t *val)
         goto end_bit_string_as_int;
     }
 
-    /* number of bits left unused in the final byte of content */
-    len--;
-    *val = 0;
-
-    /* not sure why key usage doesn't used proper DER spec version */
-    for (i = len-1; i >= 0; --i)
-    {
-        *val <<= 8;
-        *val |= buf[(*offset) + i];
+    if (len == 0) {
+        *val = 0;
+        goto end_bit_string_as_int;
     }
 
+    // number of unused bits in the last octet
+    padding = buf[*offset];
+    if (padding >= 8)
+    {
+        printf("Error: bit string padding greater than 7\n");
+
+        res = X509_NOT_OK;
+        goto end_bit_string_as_int;
+    }
+
+    // convert bit string to int
+    v = 0;
+    for (i = 1; i < len; i++)
+    {
+        v <<= 8;
+        v |= buf[(*offset) + i];
+    }
+
+    // remove unused bits
+    v >>= padding;
+
+
+    *val = 0;
+
+    // "invert" bits
+    // see:
+    // - https://security.stackexchange.com/a/10396
+    // - https://tools.ietf.org/html/rfc5280#section-4.2.1.3
+    bits = (len-1)*8 - padding;
+    for (i = 0; i < bits; i++)
+    {
+        if (v & (1<<(bits-i-1)))
+            *val |= (1<<i);
+    }
+
+
     *offset += len;
+
 
 end_bit_string_as_int:
     return res;
