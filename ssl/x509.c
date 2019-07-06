@@ -434,7 +434,7 @@ static bigint *sig_verify(BI_CTX *ctx, const uint8_t *sig, int sig_len, uint8_t 
         break;
     }
     if (sig_prefix)
-        hash_len = sig_prefix[sig_prefix_size - 1];
+        hash_len = pgm_read_byte(&sig_prefix[sig_prefix_size - 1]);
 
     /* check length (#A) */
     if (sig_len < 2 + 8 + 1 + sig_prefix_size + hash_len)
