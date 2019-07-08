@@ -40,13 +40,35 @@ LDFLAGS  += 	-L$(XTENSA_LIBS)/lib \
 		-L$(XTENSA_LIBS)/arch/lib \
 
 
-CFLAGS+=-std=gnu99 -DESP8266 -DWITH_PGM_READ_HELPER
+CFLAGS +=-std=gnu99 -DESP8266
 
 CFLAGS += -Wall -Os -g -O2 -Wpointer-arith -Wl,-EL -nostdlib -mlongcalls -mno-text-section-literals  -D__ets__ -DICACHE_FLASH
 
 CFLAGS += -ffunction-sections -fdata-sections
 
 CFLAGS += -fdebug-prefix-map=$(PWD)= -fdebug-prefix-map=$(TOOLCHAIN_DIR)=xtensa-lx106-elf -gno-record-gcc-switches
+
+WITH_PGM_READ_HELPER ?= 0
+
+MFORCE32 := $(shell $(CC) --help=target | grep mforce-l32)
+ifneq ($(MFORCE32),)
+    # If the compiler supports the -mforce-l32 flag, the compiler will generate correct code for loading
+    # 16- and 8-bit constants from program memory. So in the code we can directly access the arrays
+    # placed into program memory.
+    ifeq ($(WITH_PGM_READ_HELPER),0)
+        CFLAGS +=  -mforce-l32
+    else
+        # Ignore the mforge flag, the user forded this off
+        CFLAGS += -DWITH_PGM_READ_HELPER
+    endif
+else
+    # Otherwise we need to use a helper function to load 16- and 8-bit constants from program memory.
+    CFLAGS += -DWITH_PGM_READ_HELPER
+endif
+
+# Check to see if memcpy_P/etc. are already defined in the standard libraries by seeing if build fails
+HAS_PROGMEM_FCNS :=$(shell $(CC) -std=gnu99 $(CFLAGS) $(CPPFLAGS) -c ssl/os_port.c -o /dev/null 2>/dev/null; echo $$?)
+CFLAGS += -DHAS_PROGMEM_FCNS=$(HAS_PROGMEM_FCNS)
 
 BIN_DIR := bin
 AXTLS_AR := $(BIN_DIR)/libaxtls.a
