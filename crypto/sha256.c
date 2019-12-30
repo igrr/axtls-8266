@@ -251,7 +251,7 @@ void SHA256_Final(uint8_t *digest, SHA256_CTX *ctx)
     uint8_t msglen[8];
 #ifdef WITH_PGM_READ_HELPER
     uint8_t sha256_padding_ram[64];
-    memcpy(sha256_padding_ram, sha256_padding, 64);
+    memcpy_P(sha256_padding_ram, sha256_padding, 64);
 #endif
 
     high = (ctx->total[0] >> 29)
