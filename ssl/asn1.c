@@ -283,8 +283,12 @@ int asn1_get_private_key(const uint8_t *buf, int len, RSA_CTX **rsa_ctx)
     pub_len = asn1_get_big_int(buf, &offset, &pub_exp);
     priv_len = asn1_get_big_int(buf, &offset, &priv_exp);
 
-    if (mod_len <= 0 || pub_len <= 0 || priv_len <= 0)
+    if (mod_len <= 0 || pub_len <= 0 || priv_len <= 0) {
+        free(modulus);
+        free(pub_exp);
+        free(priv_exp);
         return X509_INVALID_PRIV_KEY;
+    }
 
 #ifdef CONFIG_BIGINT_CRT
     p_len = asn1_get_big_int(buf, &offset, &p);
@@ -293,8 +297,17 @@ int asn1_get_private_key(const uint8_t *buf, int len, RSA_CTX **rsa_ctx)
     dQ_len = asn1_get_big_int(buf, &offset, &dQ);
     qInv_len = asn1_get_big_int(buf, &offset, &qInv);
 
-    if (p_len <= 0 || q_len <= 0 || dP_len <= 0 || dQ_len <= 0 || qInv_len <= 0)
+    if (p_len <= 0 || q_len <= 0 || dP_len <= 0 || dQ_len <= 0 || qInv_len <= 0) {
+        free(modulus);
+        free(pub_exp);
+        free(priv_exp);
+        free(p);
+        free(q);
+        free(dP);
+        free(dQ);
+        free(qInv);
         return X509_INVALID_PRIV_KEY;
+    }
 
     RSA_priv_key_new(rsa_ctx, 
             modulus, mod_len, pub_exp, pub_len, priv_exp, priv_len,
