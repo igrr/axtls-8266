@@ -57,7 +57,7 @@ static int x509_v3_key_usage(const uint8_t *cert, int offset,
  */
 int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
 {
-    int begin_tbs, end_tbs, begin_spki, end_spki;
+    int begin_tbs, end_tbs, begin_spki, end_spki, begin_v3;
     int ret = X509_NOT_OK, offset = 0, cert_size = 0;
     int version = 0;
     X509_CTX *x509_ctx;
@@ -121,6 +121,15 @@ int x509_new(const uint8_t *cert, int *len, X509_CTX **ctx)
     SHA256_Final(x509_ctx->spki_sha256, &spki_hash_ctx);
 
 #ifdef CONFIG_SSL_CERT_VERIFICATION /* only care if doing verification */
+    /* find the authorityKeyIdentifier in the v3 data */
+    begin_v3 = offset;
+    if (cert[offset] == ASN1_V3_DATA) {
+        ++offset;
+        get_asn1_length(cert, &offset);
+        asn1_auth_key_id(cert, &offset, x509_ctx);
+    }
+    offset = begin_v3;
+
     bi_ctx = x509_ctx->rsa_ctx->bi_ctx;
 
     /* use the appropriate signature algorithm */
@@ -372,6 +381,11 @@ void x509_free(X509_CTX *x509_ctx)
     if (x509_ctx->spki_sha256)
     {
         free(x509_ctx->spki_sha256);
+    }
+
+    if (x509_ctx->auth_key_sha1)
+    {
+        free(x509_ctx->auth_key_sha1);
     }
 
     if (x509_ctx->subject_alt_dnsnames)

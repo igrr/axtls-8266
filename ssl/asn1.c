@@ -75,6 +75,7 @@ static const uint8_t sig_sha512[] =
     0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x03
 };
 
+/* 2.5.29.17 */
 static const uint8_t sig_subject_alt_name[] =
 {
     0x55, 0x1d, 0x11
@@ -88,6 +89,12 @@ static const uint8_t sig_basic_constraints[] =
 static const uint8_t sig_key_usage[] =
 {
     0x55, 0x1d, 0x0f
+};
+
+/* 2.5.29.35 Authority Key Identifier*/
+static const uint8_t sig_authority_key_identifier[] =
+{
+    0x55, 0x1d, 0x23
 };
 
 /* CN, O, OU, L, C, ST */
@@ -565,6 +572,41 @@ int asn1_public_key(const uint8_t *cert, int *offset, X509_CTX *x509_ctx)
     ret = X509_OK;
 
 end_pub_key:
+    return ret;
+}
+
+int asn1_auth_key_id(const uint8_t* cert, int *offset, X509_CTX *x509_ctx)
+{
+    int ret = X509_NOT_OK;
+
+    if (asn1_find_oid(cert, offset, sig_authority_key_identifier,
+                                sizeof(sig_authority_key_identifier))) {
+
+    	if(asn1_next_obj(cert, offset, ASN1_OCTET_STRING) < 0 ||
+    	   asn1_next_obj(cert, offset, ASN1_SEQUENCE) < 0 ) {
+    		goto end_auth_key;
+    	}
+
+    	/* find the implicit tag with the data */
+    	int len = asn1_next_obj(cert, offset, ASN1_IMPLICIT_TAG);
+    	if(len != SHA1_SIZE) {
+    		goto end_auth_key;
+    	}
+
+    	if(!x509_ctx->auth_key_sha1) {
+    		x509_ctx->auth_key_sha1 = (uint8_t *)malloc(len);
+		if(x509_ctx->auth_key_sha1 == NULL) {
+			goto end_auth_key;
+		}
+    	}
+
+    	memcpy(x509_ctx->auth_key_sha1, &cert[*offset], len);
+    	*offset += len;
+    	ret = X509_OK;
+
+    }
+
+end_auth_key:
     return ret;
 }
 
