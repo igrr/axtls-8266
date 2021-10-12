@@ -102,6 +102,7 @@ void ax_wdt_feed();
 #define ax_array_read_u8(x, y) x[y]
 #else
 
+#if (HAS_PROGMEM_FCNS==0)
 static inline uint8_t pgm_read_byte(const void* addr) {
   register uint32_t res;
   __asm__("extui    %0, %1, 0, 2\n"     /* Extract offset within word (in bytes) */
@@ -115,6 +116,7 @@ static inline uint8_t pgm_read_byte(const void* addr) {
       :);
   return (uint8_t) res;     /* This masks the lower byte from the returned word */
 }
+#endif
 
 #define ax_array_read_u8(x, y) pgm_read_byte((x)+(y))
 #endif //WITH_PGM_READ_HELPER
@@ -123,8 +125,11 @@ static inline uint8_t pgm_read_byte(const void* addr) {
 #undef printf
 #endif
 //#define printf(...)  ets_printf(__VA_ARGS__)
+#undef PSTR // Defined in Arduino core
 #define PSTR(s) (__extension__({static const char __c[] PROGMEM = (s); &__c[0];}))
 #define PGM_VOID_P const void *
+
+#if (HAS_PROGMEM_FCNS==0)
 static inline void* memcpy_P(void* dest, PGM_VOID_P src, size_t count) {
     const uint8_t* read = (const uint8_t*)(src);
     uint8_t* write = (uint8_t*)(dest);
@@ -153,9 +158,10 @@ static inline int memcmp_P(const void *a1, const void *b1, size_t len) {
     }
     return 0;
 }
+#define strcpy_P(dst, src) do { static const char fstr[] PROGMEM = src; memcpy_P(dst, fstr, sizeof(src)); } while (0)
+#endif
 
 #define printf(fmt, ...) do { static const char fstr[] PROGMEM = fmt; char rstr[sizeof(fmt)]; memcpy_P(rstr, fstr, sizeof(rstr)); ets_printf(rstr, ##__VA_ARGS__); } while (0)
-#define strcpy_P(dst, src) do { static const char fstr[] PROGMEM = src; memcpy_P(dst, fstr, sizeof(src)); } while (0)
 
 // Copied from ets_sys.h to avoid compile warnings
 extern int ets_printf(const char *format, ...)  __attribute__ ((format (printf, 1, 2)));
